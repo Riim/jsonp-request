@@ -1,0 +1,18 @@
+{
+  "name": "jsonp-request",
+  "version": "0.1.0",
+  "homepage": "https://github.com/Riim/jsonp-request",
+  "authors": [
+    "Dmitry Vibe <riim@yandex.ru>"
+  ],
+  "main": "jsonpRequest.js",
+  "license": "MIT",
+  "private": false,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
