@@ -1,7 +1,7 @@
 
 (function(undefined) {
 
-	var idCounter = 0;
+	var callbackIdCounter = 0;
 
 	/**
 	 * @param {string} url
@@ -21,7 +21,7 @@
 		}
 
 		var callbackKey = options.callbackKey || 'callback';
-		var callbackName = options.callbackName || '__callback' + (++idCounter);
+		var callbackName = options.callbackName || '__callback' + (++callbackIdCounter);
 		var preventCaching = options.preventCaching !== false;
 		var cachingPreventionKey = options.cachingPreventionKey || '_r';
 		var timeout = options.timeout || 120000;
