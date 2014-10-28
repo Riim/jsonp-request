@@ -5,68 +5,59 @@
 
 	/**
 	 * @param {string} url
-	 * @param {Function} cb
-	 * @param {Object} [options]
+	 * @param {Object} [[options]]
 	 * @param {string} [options.callbackKey='callback']
 	 * @param {string} [options.callbackName]
 	 * @param {boolean} [options.preventCaching=true]
-	 * @param {boolean} [options.cachingPreventionKey='_r']
+	 * @param {boolean} [options.cachingPreventionKey='noCache']
 	 * @param {int} [options.timeout=120000]
-	 * @param {Function} [options.onFailure]
+	 * @param {Function} cb
 	 * @returns {{ abort:Function; }}
 	 */
-	function send(url, cb, options) {
-		if (options == null) {
+	function send(url, options, cb) {
+		if (!cb) {
+			cb = options;
+			options = {};
+		} else if (!options) {
 			options = {};
 		}
 
 		var callbackKey = options.callbackKey || 'callback';
 		var callbackName = options.callbackName || '__callback' + (++callbackIdCounter);
 		var preventCaching = options.preventCaching !== false;
-		var cachingPreventionKey = options.cachingPreventionKey || '_r';
+		var cachingPreventionKey = options.cachingPreventionKey || 'noCache';
 		var timeout = options.timeout || 120000;
-		var onFailure = options.onFailure;
 
 		var script = document.createElement('script');
 
-		script.src = url + (url.indexOf('?') != -1 ? '&' : '?') + callbackKey + '=' + callbackName +
+		script.src = url + (url.indexOf('?') == -1 ? '?' : '&') + callbackKey + '=' + callbackName +
 			(preventCaching ? '&' + cachingPreventionKey + '=' + Math.random() : '');
 
 		script.async = true;
 
 		script.onerror = function() {
 			dispose();
-
-			if (onFailure) {
-				onFailure.call(window);
-			}
+			cb(new Error('Script error'), null);
 		};
 
 		var timerId = setTimeout(function() {
 			dispose();
-
-			if (onFailure) {
-				onFailure.call(window);
-			}
+			cb(new Error('Timeout error'), null);
 		}, timeout);
 
-		window[callbackName] = function() {
+		window[callbackName] = function(data) {
 			dispose();
-			cb.apply(this, arguments);
+			cb(null, data);
 		};
 
 		var disposed = false;
 
 		function dispose() {
-			if (disposed) {
-				return;
-			}
-
 			disposed = true;
 
+			script.onerror = null;
 			clearTimeout(timerId);
 			delete window[callbackName];
-			script.onerror = null;
 			script.parentNode.removeChild(script);
 		}
 
@@ -74,14 +65,9 @@
 
 		return {
 			abort: function() {
-				if (disposed) {
-					return;
-				}
-
-				dispose();
-
-				if (onFailure) {
-					onFailure.call(window);
+				if (!disposed) {
+					dispose();
+					cb(new Error('Aborted'), null);
 				}
 			}
 		};
