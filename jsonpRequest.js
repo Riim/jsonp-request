@@ -1,7 +1,7 @@
 
 (function(undefined) {
 
-	var callbackIdCounter = 0;
+	var idCounter = 0;
 
 	/**
 	 * @param {string} url
@@ -23,10 +23,16 @@
 		}
 
 		var callbackKey = options.callbackKey || 'callback';
-		var callbackName = options.callbackName || '__callback' + (++callbackIdCounter);
+		var callbackName = options.callbackName || '__callback' + (++idCounter);
 		var preventCaching = options.preventCaching !== false;
 		var cachingPreventionKey = options.cachingPreventionKey || 'noCache';
 		var timeout = options.timeout || 120000;
+
+		var expired = false;
+		var aborted = false;
+		var loaded = false;
+		var success = false;
+		var disposed = false;
 
 		var script = document.createElement('script');
 
@@ -35,27 +41,71 @@
 
 		script.async = true;
 
+		script.onload = script.onreadystatechange = function() {
+			if ((script.readyState && script.readyState != 'complete' && script.readyState != 'loaded') || loaded) {
+				return;
+			}
+
+			loaded = true;
+
+			setTimeout(function() {
+				if (success) {
+					return;
+				}
+
+				dispose();
+
+				if (expired || aborted) {
+					return;
+				}
+
+				cb(new Error('Invalid response or loading error'), null);
+			}, 1);
+		};
+
 		script.onerror = function() {
+			if (success) {
+				return;
+			}
+
 			dispose();
+
+			if (expired || aborted) {
+				return;
+			}
+
 			cb(new Error('Script error'), null);
 		};
 
 		var timerId = setTimeout(function() {
-			dispose();
+			if (aborted) {
+				return;
+			}
+
+			expired = true;
+
 			cb(new Error('Timeout error'), null);
 		}, timeout);
 
 		window[callbackName] = function(data) {
 			dispose();
+
+			if (expired || aborted) {
+				return;
+			}
+
+			success = true;
 			cb(null, data);
 		};
 
-		var disposed = false;
-
 		function dispose() {
+			if (disposed) {
+				return;
+			}
+
 			disposed = true;
 
-			script.onerror = null;
+			script.onload = script.onreadystatechange = script.onerror = null;
 			clearTimeout(timerId);
 			delete window[callbackName];
 			script.parentNode.removeChild(script);
@@ -65,10 +115,7 @@
 
 		return {
 			abort: function() {
-				if (!disposed) {
-					dispose();
-					cb(new Error('Aborted'), null);
-				}
+				aborted = true;
 			}
 		};
 	}
