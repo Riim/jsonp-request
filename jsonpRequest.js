@@ -107,11 +107,13 @@
 
 			script.onload = script.onreadystatechange = script.onerror = null;
 			clearTimeout(timerId);
+
 			try {
 				delete window[callbackName];
-			} catch(e) {
+			} catch (err) {
 				window[callbackName] = undefined;
 			}
+
 			script.parentNode.removeChild(script);
 		}
 
