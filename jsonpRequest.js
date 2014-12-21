@@ -12,7 +12,7 @@
 	 * @param {boolean} [options.cachingPreventionKey='noCache']
 	 * @param {int} [options.timeout=120000]
 	 * @param {Function} cb
-	 * @returns {{ abort:Function; }}
+	 * @returns {{ abort: Function }}
 	 */
 	function send(url, options, cb) {
 		if (!cb) {
