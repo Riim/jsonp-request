@@ -5,28 +5,28 @@
 
 	/**
 	 * @param {string} url
-	 * @param {Object} [[options]]
-	 * @param {string} [options.callbackKey='callback']
-	 * @param {string} [options.callbackName]
-	 * @param {boolean} [options.preventCaching=true]
-	 * @param {boolean} [options.cachingPreventionKey='noCache']
-	 * @param {int} [options.timeout=120000]
+	 * @param {Object} [[opts]]
+	 * @param {string} [opts.callbackKey='callback']
+	 * @param {string} [opts.callbackName]
+	 * @param {boolean} [opts.preventCaching=true]
+	 * @param {boolean} [opts.cachingPreventionKey='noCache']
+	 * @param {int} [opts.timeout=120000]
 	 * @param {Function} cb
 	 * @returns {{ abort: Function }}
 	 */
-	function send(url, options, cb) {
+	function send(url, opts, cb) {
 		if (!cb) {
-			cb = options;
-			options = {};
-		} else if (!options) {
-			options = {};
+			cb = opts;
+			opts = {};
+		} else if (!opts) {
+			opts = {};
 		}
 
-		var callbackKey = options.callbackKey || 'callback';
-		var callbackName = options.callbackName || '__callback' + (++idCounter);
-		var preventCaching = options.preventCaching !== false;
-		var cachingPreventionKey = options.cachingPreventionKey || 'noCache';
-		var timeout = options.timeout || 120000;
+		var callbackKey = opts.callbackKey || 'callback';
+		var callbackName = opts.callbackName || '__callback' + (++idCounter);
+		var preventCaching = opts.preventCaching !== false;
+		var cachingPreventionKey = opts.cachingPreventionKey || 'noCache';
+		var timeout = opts.timeout || 120000;
 
 		var expired = false;
 		var aborted = false;
